@@ -32,9 +32,9 @@ class Api extends REST_Controller
 
         $questionShuffleMode = $this->db->where('type', 'question_shuffle_mode')->get('tbl_settings')->row_array();
         $questionShuffleMode = $questionShuffleMode['message'];
-        if($questionShuffleMode){
+        if ($questionShuffleMode) {
             $this->Order_By = 'rand()';
-        }else{
+        } else {
             $this->Order_By = 'id';
         }
 
@@ -104,7 +104,7 @@ class Api extends REST_Controller
             $this->db->where($type, $id);
             $this->db->order_by($this->Order_By);
 
-            if($fix_question == 1){
+            if ($fix_question == 1) {
                 $this->db->limit($limit, 0);
             }
             $data = $this->db->get('tbl_maths_question')->result_array();
@@ -219,9 +219,9 @@ class Api extends REST_Controller
             $offset = ($this->post('offset') && is_numeric($this->post('offset'))) ? $this->post('offset') : 0;
             $limit = ($this->post('limit') && is_numeric($this->post('limit'))) ? $this->post('limit') : 10;
             $type = ($this->post('type') && is_numeric($this->post('type'))) ? $this->post('type') : 0;
-            if($type == 1){
+            if ($type == 1) {
                 $this->db->where('status', 0);
-            }else if($type == 2){
+            } else if ($type == 2) {
                 $this->db->where('status', 1);
             }
 
@@ -231,11 +231,11 @@ class Api extends REST_Controller
             $this->db->limit($limit, $offset);
             $data = $this->db->get('tbl_tracker')->result_array();
             if (!empty($data)) {
-                if($type == 1){
-                    $data1 = $this->db->where('user_id', $user_id)->where('status',0)->order_by('id', 'DESC')->get('tbl_tracker')->result_array();
-                }else if($type == 2){
-                    $data1 = $this->db->where('user_id', $user_id)->where('status',1)->order_by('id', 'DESC')->get('tbl_tracker')->result_array();
-                }else{
+                if ($type == 1) {
+                    $data1 = $this->db->where('user_id', $user_id)->where('status', 0)->order_by('id', 'DESC')->get('tbl_tracker')->result_array();
+                } else if ($type == 2) {
+                    $data1 = $this->db->where('user_id', $user_id)->where('status', 1)->order_by('id', 'DESC')->get('tbl_tracker')->result_array();
+                } else {
                     $data1 = $this->db->where('user_id', $user_id)->order_by('id', 'DESC')->get('tbl_tracker')->result_array();
                 }
 
@@ -611,17 +611,17 @@ class Api extends REST_Controller
             // Get the language_id from the post data or default to 14
             $language_id = $this->post('language_id') ? $this->post('language_id') : 14;
             foreach ($badges as $key => $row) {
-                $res[$key] = $this->db->where('type', $row)->where('language_id',$language_id)->get('tbl_badges')->row_array();
-                if(empty($res[$key])){
-                    $res[$key] = $this->db->where('type', $row)->where('language_id',14)->get('tbl_badges')->row_array();
-                }else{  
+                $res[$key] = $this->db->where('type', $row)->where('language_id', $language_id)->get('tbl_badges')->row_array();
+                if (empty($res[$key])) {
+                    $res[$key] = $this->db->where('type', $row)->where('language_id', 14)->get('tbl_badges')->row_array();
+                } else {
                     // Check if label is empty then take label of english language
-                    if(empty($res[$key]['badge_label'])){
-                        $res[$key]['badge_label'] = $this->db->select('badge_label')->where('type', $row)->where('language_id',14)->get('tbl_badges')->row_array();
+                    if (empty($res[$key]['badge_label'])) {
+                        $res[$key]['badge_label'] = $this->db->select('badge_label')->where('type', $row)->where('language_id', 14)->get('tbl_badges')->row_array();
                     }
                     // Check if note is empty then take note of english language
-                    if(empty($res[$key]['badge_note'])){
-                        $res[$key]['badge_note'] = $this->db->select('badge_note')->where('type', $row)->where('language_id',14)->get('tbl_badges')->row_array();
+                    if (empty($res[$key]['badge_note'])) {
+                        $res[$key]['badge_note'] = $this->db->select('badge_note')->where('type', $row)->where('language_id', 14)->get('tbl_badges')->row_array();
                     }
                 }
                 $res[$key]['badge_icon'] = (isset($res[$key]['badge_icon']) && !empty($res[$key]['badge_icon'])) ? base_url() . BADGE_IMG_PATH . $res[$key]['badge_icon'] : "";
@@ -671,7 +671,7 @@ class Api extends REST_Controller
                 $this->set_badges($user_id, $type, 0, $language_id);
             }
 
-            $data1 = $this->db->where_in('type', ['notification_title', 'notification_body'])->where('language_id',$language_id)->get('tbl_web_settings')->result_array();
+            $data1 = $this->db->where_in('type', ['notification_title', 'notification_body'])->where('language_id', $language_id)->get('tbl_web_settings')->result_array();
             $result1 = array_column($data1, 'message', 'type');
             $notificationTitleMessage = $result1['notification_title'];
             $notificationBodyMessage = $result1['notification_body'];
@@ -704,11 +704,11 @@ class Api extends REST_Controller
             $id = $this->post('type_id');
             $fix_question = is_settings('audio_quiz_fix_question');
             $limit = is_settings('audio_quiz_total_question');
-            
+
             $this->db->where($type, $id);
             $this->db->order_by($this->Order_By);
 
-            if($fix_question == 1){
+            if ($fix_question == 1) {
                 $this->db->limit($limit, 0);
             }
 
@@ -760,7 +760,7 @@ class Api extends REST_Controller
             $this->db->where($type, $type_id);
             $this->db->order_by($this->Order_By);
 
-            if($fix_question == 1){
+            if ($fix_question == 1) {
                 $this->db->limit($limit, 0);
             }
             $data = $this->db->get('tbl_guess_the_word c')->result_array();
@@ -807,7 +807,7 @@ class Api extends REST_Controller
             $this->db->where('fun_n_learn_id', $fun_n_learn_id);
             $this->db->order_by($this->Order_By);
 
-            if($fix_question == 1){
+            if ($fix_question == 1) {
                 $this->db->limit($limit, 0);
             }
 
@@ -1028,7 +1028,7 @@ class Api extends REST_Controller
                 $res = json_decode($res['questions'], true);
                 $fix_question = is_settings('battle_mode_group_fix_question');
                 $limit = is_settings('battle_mode_group_total_question'); // Get the limit
-                if($fix_question == 1){
+                if ($fix_question == 1) {
                     $res = array_slice($res, 0, $limit); // Limit the number of questions
                 }
                 foreach ($res as $row) {
@@ -1284,9 +1284,9 @@ class Api extends REST_Controller
             $language_id = ($this->post('language_id') && is_numeric($this->post('language_id'))) ? $this->post('language_id') : '0';
 
             /* selecting live quiz ids */
-            if($language_id){
+            if ($language_id) {
                 $result = $this->db->query("SELECT id FROM tbl_contest WHERE status=1 AND language_id = $language_id AND (('$this->toDateTime') between CAST(start_date AS DATETIME) and CAST(end_date AS DATETIME))")->result_array();
-            }else{
+            } else {
                 $result = $this->db->query("SELECT id FROM tbl_contest WHERE status=1 AND (('$this->toDateTime') between CAST(start_date AS DATETIME) and CAST(end_date AS DATETIME))")->result_array();
             }
 
@@ -1322,9 +1322,9 @@ class Api extends REST_Controller
                     $response['past_contest']['message'] = "117";
                     $response['past_contest']['data'] = (!empty($past_result)) ? $past_result : '';
                 } else {
-                    if($language_id){
+                    if ($language_id) {
                         $past_result = $this->db->query("SELECT c.*, (select SUM(points) FROM tbl_contest_prize tcp WHERE tcp.contest_id=c.id) as points, (select count(contest_id) FROM tbl_contest_prize tcp WHERE tcp.contest_id=c.id) as top_users,(SELECT COUNT(*) from tbl_contest_leaderboard where l.contest_id=c.id )as participants FROM tbl_contest_leaderboard as l, tbl_contest as c WHERE l.user_id = '$user_id' and l.contest_id = c.id and c.language_id = $language_id ORDER BY c.id DESC")->result_array();
-                    }else{
+                    } else {
                         $past_result = $this->db->query("SELECT c.*, (select SUM(points) FROM tbl_contest_prize tcp WHERE tcp.contest_id=c.id) as points, (select count(contest_id) FROM tbl_contest_prize tcp WHERE tcp.contest_id=c.id) as top_users,(SELECT COUNT(*) from tbl_contest_leaderboard where l.contest_id=c.id )as participants FROM tbl_contest_leaderboard as l, tbl_contest as c WHERE l.user_id = '$user_id' and l.contest_id = c.id ORDER BY c.id DESC")->result_array();
                     }
                     if (!empty($past_result)) {
@@ -1373,9 +1373,9 @@ class Api extends REST_Controller
                     $response['live_contest']['message'] = "115";
                 }
             } else {
-                if($language_id){
+                if ($language_id) {
                     $past_result = $this->db->query("SELECT c.*, (select SUM(points) FROM tbl_contest_prize tcp WHERE tcp.contest_id=c.id) as points, (select count(contest_id) FROM tbl_contest_prize tcp WHERE tcp.contest_id=c.id) as top_users,(SELECT COUNT(*) from tbl_contest_leaderboard where l.contest_id=c.id ) as participants FROM tbl_contest_leaderboard as l, tbl_contest as c WHERE l.user_id='$user_id' and l.contest_id=c.id and c.language_id = $language_id ORDER BY c.id DESC")->result_array();
-                }else{
+                } else {
                     $past_result = $this->db->query("SELECT c.*, (select SUM(points) FROM tbl_contest_prize tcp WHERE tcp.contest_id=c.id) as points, (select count(contest_id) FROM tbl_contest_prize tcp WHERE tcp.contest_id=c.id) as top_users,(SELECT COUNT(*) from tbl_contest_leaderboard where l.contest_id=c.id ) as participants FROM tbl_contest_leaderboard as l, tbl_contest as c WHERE l.user_id='$user_id' and l.contest_id=c.id ORDER BY c.id DESC")->result_array();
                 }
                 if (!empty($past_result)) {
@@ -1401,9 +1401,9 @@ class Api extends REST_Controller
             }
 
             /* selecting upcoming quiz ids */
-            if($language_id){
+            if ($language_id) {
                 $result = $this->db->query("SELECT id FROM tbl_contest where language_id = $language_id and (CAST(start_date AS DATE) > '$this->toDate')")->result_array();
-            }else{
+            } else {
                 $result = $this->db->query("SELECT id FROM tbl_contest where (CAST(start_date AS DATE) > '$this->toDate')")->result_array();
             }
             $upcoming_type_ids = '';
@@ -2574,10 +2574,10 @@ class Api extends REST_Controller
                     $this->db->or_where('tbl_question.subcategory', '0');
                     $this->db->group_end();
                     $this->db->order_by('rand()');
-                    if($fix_question == 1){
+                    if ($fix_question == 1) {
                         $this->db->limit($limit, 0);
-                    }else{
-                        $this->db->limit(10,0);
+                    } else {
+                        $this->db->limit(10, 0);
                     }
                     $res = $this->db->get('tbl_question')->result_array();
 
@@ -2724,7 +2724,7 @@ class Api extends REST_Controller
             $this->db->group_end();
             $this->db->order_by($this->Order_By);
 
-            if($fix_question == 1){
+            if ($fix_question == 1) {
                 $this->db->limit($limit, 0);
             }
 
@@ -3419,6 +3419,8 @@ class Api extends REST_Controller
                 $status = ($this->post('status')) ? $this->post('status') : '1';
                 $refer_coin = is_settings('refer_coin');
                 $earn_coin = is_settings('earn_coin');
+                $category_id = ($this->post('category_id')) ? $this->post('category_id') : '';
+                $subcategory_id = ($this->post('subcategory_id')) ? $this->post('subcategory_id') : '';
 
                 if (!empty($friends_code)) {
                     $code = valid_friends_refer_code($friends_code);
@@ -3487,6 +3489,8 @@ class Api extends REST_Controller
                         'name' => $name,
                         'email' => $email,
                         'mobile' => $mobile,
+                        'category_id' => $category_id,
+                        'subcategory_id' => $subcategory_id,
                         'type' => $type,
                         'profile' => $profile,
                         'fcm_id' => $fcm_id,
@@ -3615,27 +3619,27 @@ class Api extends REST_Controller
             'refer_coin', 'earn_coin', 'reward_coin', 'app_version', 'app_version_ios',
             'true_value', 'false_value',
             'shareapp_text',
-            'language_mode', 'option_e_mode','force_update', 'daily_quiz_mode', 'in_app_purchase_mode',
+            'language_mode', 'option_e_mode', 'force_update', 'daily_quiz_mode', 'in_app_purchase_mode',
             'in_app_ads_mode', 'ads_type',
             'android_banner_id', 'android_interstitial_id', 'android_rewarded_id',
             'ios_banner_id', 'ios_interstitial_id', 'ios_rewarded_id',
             'android_game_id', 'ios_game_id',
-            'payment_mode', 'per_coin', 'coin_amount', 'currency_symbol', 'coin_limit', 'difference_hours', 'app_maintenance','bot_image',
+            'payment_mode', 'per_coin', 'coin_amount', 'currency_symbol', 'coin_limit', 'difference_hours', 'app_maintenance', 'bot_image',
             'daily_ads_visibility', 'daily_ads_coins', 'daily_ads_counter',
-            'maximum_winning_coins', 'minimum_coins_winning_percentage', 'quiz_winning_percentage','score',
-            'answer_mode','welcome_bonus_coin','review_answers_deduct_coin',
-            'quiz_zone_mode','quiz_zone_duration','quiz_zone_lifeline_deduct_coin','quiz_zone_wrong_answer_deduct_score','quiz_zone_correct_answer_credit_score',
-            'guess_the_word_question','guess_the_word_seconds','guess_the_word_max_hints','guess_the_word_max_winning_coin','guess_the_word_wrong_answer_deduct_score','guess_the_word_correct_answer_credit_score',
-            'audio_mode_question','audio_quiz_seconds','audio_quiz_wrong_answer_deduct_score','audio_quiz_correct_answer_credit_score',
-            'maths_quiz_mode','maths_quiz_seconds','maths_quiz_wrong_answer_deduct_score','maths_quiz_correct_answer_credit_score',
-            'fun_n_learn_question','fun_and_learn_time_in_seconds','fun_n_learn_quiz_wrong_answer_deduct_score','fun_n_learn_quiz_correct_answer_credit_score',
-            'true_false_mode','true_false_quiz_in_seconds','true_false_quiz_wrong_answer_deduct_score','true_false_quiz_correct_answer_credit_score',
-            'battle_mode_one','battle_mode_one_category','battle_mode_one_in_seconds','battle_mode_one_wrong_answer_deduct_score','battle_mode_one_correct_answer_credit_score','battle_mode_one_quickest_correct_answer_extra_score','battle_mode_one_second_quickest_correct_answer_extra_score','battle_mode_one_code_char','battle_mode_one_entry_coin',
-            'battle_mode_group','battle_mode_group_category','battle_mode_group_in_seconds','battle_mode_group_wrong_answer_deduct_score','battle_mode_group_correct_answer_credit_score','battle_mode_group_quickest_correct_answer_extra_score','battle_mode_group_second_quickest_correct_answer_extra_score','battle_mode_group_code_char','battle_mode_group_entry_coin',
-            'battle_mode_random','battle_mode_random_category','battle_mode_random_in_seconds','battle_mode_random_wrong_answer_deduct_score','battle_mode_random_correct_answer_credit_score','battle_mode_random_quickest_correct_answer_extra_score','battle_mode_random_second_quickest_correct_answer_extra_score','battle_mode_random_search_duration','battle_mode_random_entry_coin',
-            'self_challenge_mode','self_challenge_max_minutes','self_challenge_max_questions',
-            'exam_module','exam_module_resume_exam_timeout',
-            'contest_mode','contest_mode_wrong_deduct_score','contest_mode_correct_credit_score'
+            'maximum_winning_coins', 'minimum_coins_winning_percentage', 'quiz_winning_percentage', 'score',
+            'answer_mode', 'welcome_bonus_coin', 'review_answers_deduct_coin',
+            'quiz_zone_mode', 'quiz_zone_duration', 'quiz_zone_lifeline_deduct_coin', 'quiz_zone_wrong_answer_deduct_score', 'quiz_zone_correct_answer_credit_score',
+            'guess_the_word_question', 'guess_the_word_seconds', 'guess_the_word_max_hints', 'guess_the_word_max_winning_coin', 'guess_the_word_wrong_answer_deduct_score', 'guess_the_word_correct_answer_credit_score',
+            'audio_mode_question', 'audio_quiz_seconds', 'audio_quiz_wrong_answer_deduct_score', 'audio_quiz_correct_answer_credit_score',
+            'maths_quiz_mode', 'maths_quiz_seconds', 'maths_quiz_wrong_answer_deduct_score', 'maths_quiz_correct_answer_credit_score',
+            'fun_n_learn_question', 'fun_and_learn_time_in_seconds', 'fun_n_learn_quiz_wrong_answer_deduct_score', 'fun_n_learn_quiz_correct_answer_credit_score',
+            'true_false_mode', 'true_false_quiz_in_seconds', 'true_false_quiz_wrong_answer_deduct_score', 'true_false_quiz_correct_answer_credit_score',
+            'battle_mode_one', 'battle_mode_one_category', 'battle_mode_one_in_seconds', 'battle_mode_one_wrong_answer_deduct_score', 'battle_mode_one_correct_answer_credit_score', 'battle_mode_one_quickest_correct_answer_extra_score', 'battle_mode_one_second_quickest_correct_answer_extra_score', 'battle_mode_one_code_char', 'battle_mode_one_entry_coin',
+            'battle_mode_group', 'battle_mode_group_category', 'battle_mode_group_in_seconds', 'battle_mode_group_wrong_answer_deduct_score', 'battle_mode_group_correct_answer_credit_score', 'battle_mode_group_quickest_correct_answer_extra_score', 'battle_mode_group_second_quickest_correct_answer_extra_score', 'battle_mode_group_code_char', 'battle_mode_group_entry_coin',
+            'battle_mode_random', 'battle_mode_random_category', 'battle_mode_random_in_seconds', 'battle_mode_random_wrong_answer_deduct_score', 'battle_mode_random_correct_answer_credit_score', 'battle_mode_random_quickest_correct_answer_extra_score', 'battle_mode_random_second_quickest_correct_answer_extra_score', 'battle_mode_random_search_duration', 'battle_mode_random_entry_coin',
+            'self_challenge_mode', 'self_challenge_max_minutes', 'self_challenge_max_questions',
+            'exam_module', 'exam_module_resume_exam_timeout',
+            'contest_mode', 'contest_mode_wrong_deduct_score', 'contest_mode_correct_credit_score'
         ];
         foreach ($setting as $row) {
             $data = $this->db->where('type', $row)->get('tbl_settings')->row_array();
@@ -3772,7 +3776,7 @@ class Api extends REST_Controller
         return $string;
     }
 
-    public function set_badges($user_id, $type, $counter = 0,$language_id = 14)
+    public function set_badges($user_id, $type, $counter = 0, $language_id = 14)
     {
         $res = $this->db->where('user_id', $user_id)->get('tbl_users_badges')->row_array();
         $counter_name = $type . '_counter';
@@ -3946,7 +3950,7 @@ class Api extends REST_Controller
         $data = $this->db->where_in('type', ['fcm_server_key'])->get('tbl_settings')->result_array();
         $result = array_column($data, 'message', 'type');
 
-        $data1 = $this->db->where_in('type', ['notification_title', 'notification_body'])->where('language_id',$language_id)->get('tbl_web_settings')->result_array();
+        $data1 = $this->db->where_in('type', ['notification_title', 'notification_body'])->where('language_id', $language_id)->get('tbl_web_settings')->result_array();
         $result1 = array_column($data1, 'message', 'type');
         $fcm_server_key_message = $result['fcm_server_key'];
         $notification_title_message = $result1['notification_title'];
@@ -4126,23 +4130,23 @@ class Api extends REST_Controller
             // 'favicon', 
             'header_logo', 'footer_logo', 'sticky_header_logo',
             'quiz_zone_icon', 'daily_quiz_icon', 'true_false_icon', 'fun_learn_icon', 'self_challange_icon', 'contest_play_icon', 'one_one_battle_icon', 'group_battle_icon', 'audio_question_icon', 'math_mania_icon', 'exam_icon', 'guess_the_word_icon',
-            'primary_color','footer_color','social_media'
+            'primary_color', 'footer_color', 'social_media'
         ];
         // Here Added language because settings and home settings of web are in same folder and web settings will be always stored with language 14
-        $data = $this->db->where('language_id',14)->where_in('type',$types)->get('tbl_web_settings')->result_array();
+        $data = $this->db->where('language_id', 14)->where_in('type', $types)->get('tbl_web_settings')->result_array();
         $web_settings_data = array();
         if (!empty($data)) {
             for ($i = 0; $i < count($data); $i++) {
                 $type = $data[$i]['type'];
 
-                if($type == 'social_media'){
+                if ($type == 'social_media') {
                     $message = json_decode($data[$i]['message']);
-                    if(!empty($message)){
+                    if (!empty($message)) {
                         foreach ($message as $key => $value) {
                             $value->icon = ($value->icon) ? base_url() . WEB_SETTINGS_LOGO_PATH . $value->icon : '';
                         }
                     }
-                }else{
+                } else {
                     $message = $data[$i]['message'];
                     // LOGOS of Web settings
                     $logos = ['favicon', 'header_logo', 'footer_logo', 'sticky_header_logo', 'quiz_zone_icon', 'daily_quiz_icon', 'true_false_icon', 'fun_learn_icon', 'self_challange_icon', 'contest_play_icon', 'one_one_battle_icon', 'group_battle_icon', 'audio_question_icon', 'math_mania_icon', 'exam_icon', 'guess_the_word_icon'];
@@ -4169,13 +4173,13 @@ class Api extends REST_Controller
     public function get_web_home_settings_post()
     {
         $types = [
-            'section_1_mode','section1_heading', 'section1_title1', 'section1_title2', 'section1_title3', 'section1_image1', 'section1_image2', 'section1_image3', 'section1_desc1', 'section1_desc2', 'section1_desc3',
-            'section_2_mode','section2_heading', 'section2_title1', 'section2_title2', 'section2_title3', 'section2_title4', 'section2_desc1', 'section2_desc2', 'section2_desc3', 'section2_desc4', 'section2_image1', 'section2_image2', 'section2_image3', 'section2_image4',
-            'section_3_mode','section3_heading', 'section3_title1', 'section3_title2', 'section3_title3', 'section3_title4', 'section3_image1', 'section3_image2', 'section3_image3', 'section3_image4', 'section3_desc1', 'section3_desc2', 'section3_desc3', 'section3_desc4'
+            'section_1_mode', 'section1_heading', 'section1_title1', 'section1_title2', 'section1_title3', 'section1_image1', 'section1_image2', 'section1_image3', 'section1_desc1', 'section1_desc2', 'section1_desc3',
+            'section_2_mode', 'section2_heading', 'section2_title1', 'section2_title2', 'section2_title3', 'section2_title4', 'section2_desc1', 'section2_desc2', 'section2_desc3', 'section2_desc4', 'section2_image1', 'section2_image2', 'section2_image3', 'section2_image4',
+            'section_3_mode', 'section3_heading', 'section3_title1', 'section3_title2', 'section3_title3', 'section3_title4', 'section3_image1', 'section3_image2', 'section3_image3', 'section3_image4', 'section3_desc1', 'section3_desc2', 'section3_desc3', 'section3_desc4'
         ];
 
         $language_id = $this->post('language_id') != "" ? $this->post('language_id') : 14;
-        $data = $this->db->where('language_id',$language_id)->where_in('type',$types)->get('tbl_web_settings')->result_array();
+        $data = $this->db->where('language_id', $language_id)->where_in('type', $types)->get('tbl_web_settings')->result_array();
         $web_settings_data = array();
         if (!empty($data)) {
             for ($i = 0; $i < count($data); $i++) {
@@ -4424,16 +4428,16 @@ class Api extends REST_Controller
             $user_res = $this->db->where('id', $user_id)->get('tbl_users')->row_array();
             $paymentId = $this->post('payment_id');
             $paymentData = $this->db->where('id', $paymentId)->get('tbl_payment_request')->row_array();
-            if($paymentData){
+            if ($paymentData) {
                 $newCoins = 0;
-                if($paymentData['status'] == 0){
+                if ($paymentData['status'] == 0) {
 
                     // Add Tracker of Cancelled Payment Request
                     $title = "cancelPaymentRequest";
                     $this->set_tracker_data($user_id, $paymentData['coin_used'], $title, 0);
 
                     // Delete Payment Request
-                    $this->db->where('id',$paymentId)->delete('tbl_payment_request');
+                    $this->db->where('id', $paymentId)->delete('tbl_payment_request');
 
 
                     // Calculate new coins
@@ -4446,11 +4450,11 @@ class Api extends REST_Controller
 
                     $response['error'] = false;
                     $response['message'] = "111";
-                }else{
+                } else {
                     $response['error'] = true;
                     $response['message'] = "135";
                 }
-            }else{
+            } else {
                 $response['error'] = true;
                 $response['message'] = "102";
             }
@@ -4487,7 +4491,7 @@ class Api extends REST_Controller
 
         // Shuffle the options
         $shuffled_options = $options;
-        if($this->OPTION_SHUFFLE_MODE == 1){
+        if ($this->OPTION_SHUFFLE_MODE == 1) {
             shuffle($shuffled_options);
             // Assign the shuffled values back to the original options
             $keys = array_keys($options);
@@ -4499,7 +4503,7 @@ class Api extends REST_Controller
                     $data['answer'] = $this->encrypt_data($firebase_id, $suffledAnswer);
                 }
             }
-        }else{
+        } else {
             $data['answer'] = $this->encrypt_data($firebase_id, trim($data['answer']));
         }
         return $data;
@@ -4534,5 +4538,3 @@ class Api extends REST_Controller
         }
     }
 }
-
-
