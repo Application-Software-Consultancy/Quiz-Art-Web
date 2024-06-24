@@ -32,13 +32,13 @@ class UserController extends Controller
 
     public function getCategory()
     {
-        $category = DB::table('tbl_category')->get();
+        $category = DB::table('tbl_student_category')->get();
 
         return response()->json(['category' => $category], 200);
     }
     public function getSubCategory($id)
     {
-        $subCategory = DB::table('tbl_subcategory')->where('maincat_id', $id)->get();
+        $subCategory = DB::table('tbl_student_subcategory')->where('cat_id', $id)->get();
 
         return response()->json(['sub-category' => $subCategory], 200);
     }
