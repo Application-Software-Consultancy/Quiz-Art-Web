@@ -15,9 +15,9 @@ class UserController extends Controller
         return response()->json(['user' => $user], 200);
     }
 
-    public function checkUser(Request $request)
+    public function checkUser($mobile)
     {
-        $exists = DB::table('tbl_users')->where('mobile', $request->mobile)->exists();
+        $exists = DB::table('tbl_users')->where('mobile', $mobile)->exists();
         return response()->json(['exists' => $exists], 200);
     }
 
