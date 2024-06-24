@@ -24,7 +24,7 @@ Route::middleware(['auth.token'])->group(function () {
     Route::get('/user', [UserController::class, 'getLoggedInUser']);
 });
 
-Route::get('/check-user', [UserController::class, 'checkUser']);
+Route::get('/check-user/{mobile}', [UserController::class, 'checkUser']);
 Route::get('/check-validity', [UserController::class, 'checkValidity']);
 Route::get('/category', [UserController::class, 'getCategory']);
 Route::get('/sub-category/{id}', [UserController::class, 'getSubCategory']);
