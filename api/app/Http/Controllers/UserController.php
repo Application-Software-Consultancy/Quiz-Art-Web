@@ -42,4 +42,27 @@ class UserController extends Controller
 
         return response()->json(['sub-category' => $subCategory], 200);
     }
+
+
+    public function renewMembership(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'category_id' => 'required|integer',
+            'subcategory_id' => 'required|integer',
+        ]);
+
+        // Update the user's category and subcategory
+        $update = DB::table('tbl_users')
+            ->where('id', $id)
+            ->update([
+                'categoryid' => $validatedData['categoryid'],
+                'subcategoryid' => $validatedData['subcategoryid']
+            ]);
+
+        if ($update) {
+            return response()->json(['message' => 'Membership renewed successfully.'], 200);
+        } else {
+            return response()->json(['error' => 'Failed to update membership.'], 500);
+        }
+    }
 }
