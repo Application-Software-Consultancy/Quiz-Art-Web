@@ -3411,6 +3411,7 @@ class Api extends REST_Controller
             if ($is_verify) {
                 $type = $this->post('type');
                 $email = ($this->post('email')) ? $this->post('email') : '';
+                $membership = ($this->post('membership')) ? $this->post('membership') : '0';
                 $name = ($this->post('name')) ? $this->post('name') : '';
                 $mobile = ($this->post('mobile')) ? $this->post('mobile') : '';
                 $profile = ($this->post('profile')) ? $this->post('profile') : '';
@@ -3428,155 +3429,175 @@ class Api extends REST_Controller
                         $friends_code = '';
                     }
                 }
-                $res = $this->db->where('firebase_id', $firebase_id)->get('tbl_users')->row_array();
-                if (!empty($res)) {
-                    if ($res['status'] == 1) {
-                        $user_id = $res['id'];
-                        $refer_code = $this->random_string(4) . $res['refer_code'];
-
-                        $friends_code_is_used = check_friends_code_is_used_by_user($user_id);
-                        if (!$friends_code_is_used['is_used'] && $friends_code != '') {
-                            $data = array('friends_code' => $friends_code);
-                            $this->db->where('id', $user_id)->update('tbl_users', $data);
-                            //update coins
-                            $this->set_coins($user_id, $refer_coin);
-                            // set tracker data
-                            $this->set_tracker_data($user_id, $refer_coin, $this->refer_coin_msg, 0);
-
-                            $credited = credit_coins_to_friends_code($friends_code);
-                            if ($credited['credited']) {
-                                $this->set_coins($credited['user_id'], $credited['coins'], false);
-                                // set tracker data
-                                $this->set_tracker_data($credited['user_id'], $earn_coin, $this->earn_coin_msg, 0);
-                                // for sharing is caring badge
-                                $friends = $this->db->where('friends_code', $friends_code)->get('tbl_users')->result_array();
-                                $friends_counter = count($friends);
-                                $this->set_coins($credited['user_id'], $friends_counter, false, $type = 'sharing_caring');
-                            }
-                        }
-                        if (!empty($fcm_id)) {
-                            $data = array('fcm_id' => $fcm_id);
-                            $this->db->where('id', $user_id)->update('tbl_users', $data);
-                        }
-                        if (!is_refer_code_set($user_id) && !empty($refer_code)) {
-                            $data = array('refer_code' => $refer_code);
-                            $this->db->where('id', $user_id)->update('tbl_users', $data);
-                        }
-                        if (!empty($name)) {
-                            $data = array('name' => $name);
-                            $this->db->where('id', $user_id)->update('tbl_users', $data);
-                        }
-
-                        //generate token
-                        $api_token = $this->generate_token($user_id, $firebase_id);
-                        $this->db->where('id', $user_id)->update('tbl_users', ['api_token' => $api_token]);
-
-                        $res1 = $this->db->where('firebase_id', $firebase_id)->get('tbl_users')->row_array();
-
-                        if (filter_var($res['profile'], FILTER_VALIDATE_URL) === false) {
-                            $res1['profile'] = ($res1['profile']) ? base_url() . USER_IMG_PATH . $res1['profile'] : '';
-                        }
-                        $response['error'] = false;
-                        $response['message'] = "105";
-                        $response['data'] = $res1;
-                    } else {
-                        $response['error'] = true;
-                        $response['message'] = "126";
+                $img = "";
+                if ($_FILES['profile']['name'] != '') {
+                    $config['upload_path'] = USER_IMG_PATH;
+                    $config['allowed_types'] = IMG_ALLOWED_TYPES;
+                    $config['file_name'] = time();
+                    $this->load->library('upload', $config);
+                    $this->upload->initialize($config);
+                    if ($this->upload->do_upload('profile')) {
+                        $file_data = $this->upload->data();
+                        $img = $file_data['file_name'];
                     }
-                } else {
-                    $data = array(
-                        'firebase_id' => $firebase_id,
-                        'name' => $name,
-                        'email' => $email,
-                        'mobile' => $mobile,
-                        'category_id' => $category_id,
-                        'subcategory_id' => $subcategory_id,
-                        'type' => $type,
-                        'profile' => $profile,
-                        'fcm_id' => $fcm_id,
-                        'friends_code' => $friends_code,
-                        'coins' => '0',
-                        'status' => $status,
-                        'date_registered' => $this->toDateTime,
-                    );
-                    $this->db->insert('tbl_users', $data);
-                    $insert_id = $this->db->insert_id();
-
-                    // get the welcome bonus result from settings 
-                    $welcome_bonus_query = $this->db->select('message')->where('type', 'welcome_bonus_coin')->get('tbl_settings')->row_array();
-
-                    // get the welcome bonus data if not found then default will be 5
-                    $welcome_bonus_coins = (int)$welcome_bonus_query['message'] ?? 5;
-
-                    //set the welcome bonus entry in table :- tracker
-                    $this->set_tracker_data($insert_id, $welcome_bonus_coins, $this->opening_msg, 0);
-
-                    //add coins to users
-                    $this->db->where('id', $insert_id)->update('tbl_users', ['coins' => $welcome_bonus_coins]);
-
-                    //generate token
-                    $api_token = $this->generate_token($insert_id, $firebase_id);
-                    $this->db->where('id', $insert_id)->update('tbl_users', ['api_token' => $api_token]);
-
-                    $counter = 0;
-                    $badges = [
-                        'user_id' => $insert_id,
-                        'dashing_debut' => $counter,
-                        'dashing_debut_counter' => $counter,
-                        'combat_winner' => $counter,
-                        'combat_winner_counter' => $counter,
-                        'clash_winner' => $counter,
-                        'clash_winner_counter' => $counter,
-                        'most_wanted_winner' => $counter,
-                        'most_wanted_winner_counter' => $counter,
-                        'ultimate_player' => $counter,
-                        'quiz_warrior' => $counter,
-                        'quiz_warrior_counter' => $counter,
-                        'super_sonic' => $counter,
-                        'flashback' => $counter,
-                        'brainiac' => $counter,
-                        'big_thing' => $counter,
-                        'elite' => $counter,
-                        'thirsty' => $counter,
-                        'thirsty_date' => '0000-00-00',
-                        'thirsty_counter' => $counter,
-                        'power_elite' => $counter,
-                        'power_elite_counter' => $counter,
-                        'sharing_caring' => $counter,
-                        'streak' => $counter,
-                        'streak_date' => '0000-00-00',
-                        'streak_counter' => $counter,
-                    ];
-                    $this->db->insert('tbl_users_badges', $badges);
-
-                    $refer_code = $this->random_string(4) . $insert_id;
-                    $dataR = array('refer_code' => $refer_code);
-                    $this->db->where('id', $insert_id)->update('tbl_users', $dataR);
-
-                    if ($friends_code != '') {
-                        $data = array('coins' => $refer_coin);
-                        $this->db->where('id', $insert_id)->update('tbl_users', $data);
-                        $this->set_tracker_data($insert_id, $refer_coin, $this->refer_coin_msg, 0);
-                        $credited = credit_coins_to_friends_code($friends_code);
-                        if ($credited['credited']) {
-                            $this->set_coins($credited['user_id'], $credited['coins'], false);
-                            $this->set_tracker_data($credited['user_id'], $earn_coin, $this->earn_coin_msg, 0);
-                            // for sharing is caring badge
-                            $friends = $this->db->where('friends_code', $friends_code)->get('tbl_users')->result_array();
-                            $friends_counter = count($friends);
-                            $this->set_coins($credited['user_id'], $friends_counter, false, $type = 'sharing_caring');
-                        }
-                    }
-
-                    $res1 = $this->db->where('id', $insert_id)->get('tbl_users')->row_array();
-
-                    if (filter_var($res1['profile'], FILTER_VALIDATE_URL) === false) {
-                        $res1['profile'] = ($res1['profile']) ? base_url() . USER_IMG_PATH . $res1['profile'] : '';
-                    }
-                    $response['error'] = false;
-                    $response['message'] = "104";
-                    $response['data'] = $res1;
                 }
+
+                $res = $this->db->where('mobile', $mobile)->get('tbl_users')->row_array();
+                if ($res) {
+                    $response['error'] = true;
+                    $response['message'] = "Mobile Number Already Exist !";
+                    return $this->response($response, REST_Controller::HTTP_OK);
+                }
+                // if (!empty($res)) {
+                //     if ($res['status'] == 1) {
+                //         $user_id = $res['id'];
+                //         $refer_code = $this->random_string(4) . $res['refer_code'];
+
+                //         $friends_code_is_used = check_friends_code_is_used_by_user($user_id);
+                //         if (!$friends_code_is_used['is_used'] && $friends_code != '') {
+                //             $data = array('friends_code' => $friends_code);
+                //             $this->db->where('id', $user_id)->update('tbl_users', $data);
+                //             //update coins
+                //             $this->set_coins($user_id, $refer_coin);
+                //             // set tracker data
+                //             $this->set_tracker_data($user_id, $refer_coin, $this->refer_coin_msg, 0);
+
+                //             $credited = credit_coins_to_friends_code($friends_code);
+                //             if ($credited['credited']) {
+                //                 $this->set_coins($credited['user_id'], $credited['coins'], false);
+                //                 // set tracker data
+                //                 $this->set_tracker_data($credited['user_id'], $earn_coin, $this->earn_coin_msg, 0);
+                //                 // for sharing is caring badge
+                //                 $friends = $this->db->where('friends_code', $friends_code)->get('tbl_users')->result_array();
+                //                 $friends_counter = count($friends);
+                //                 $this->set_coins($credited['user_id'], $friends_counter, false, $type = 'sharing_caring');
+                //             }
+                //         }
+                //         if (!empty($fcm_id)) {
+                //             $data = array('fcm_id' => $fcm_id);
+                //             $this->db->where('id', $user_id)->update('tbl_users', $data);
+                //         }
+                //         if (!is_refer_code_set($user_id) && !empty($refer_code)) {
+                //             $data = array('refer_code' => $refer_code);
+                //             $this->db->where('id', $user_id)->update('tbl_users', $data);
+                //         }
+                //         if (!empty($name)) {
+                //             $data = array('name' => $name);
+                //             $this->db->where('id', $user_id)->update('tbl_users', $data);
+                //         }
+
+                //         //generate token
+                //         $api_token = $this->generate_token($user_id, $firebase_id);
+                //         $this->db->where('id', $user_id)->update('tbl_users', ['api_token' => $api_token]);
+
+                //         $res1 = $this->db->where('firebase_id', $firebase_id)->get('tbl_users')->row_array();
+
+                //         if (filter_var($res['profile'], FILTER_VALIDATE_URL) === false) {
+                //             $res1['profile'] = ($res1['profile']) ? base_url() . USER_IMG_PATH . $res1['profile'] : '';
+                //         }
+                //         $response['error'] = false;
+                //         $response['message'] = "105";
+                //         $response['data'] = $res1;
+                //     } else {
+                //         $response['error'] = true;
+                //         $response['message'] = "126";
+                //     }
+                // } else {
+                $data = array(
+                    'firebase_id' => $firebase_id,
+                    'name' => $name,
+                    'email' => $email,
+                    'mobile' => $mobile,
+                    'membership' => $membership,
+                    'category_id' => $category_id,
+                    'subcategory_id' => $subcategory_id,
+                    'type' => $type,
+                    'profile' => $img,
+                    'fcm_id' => $fcm_id,
+                    'friends_code' => $friends_code,
+                    'coins' => '0',
+                    'status' => $status,
+                    'date_registered' => $this->toDateTime,
+                );
+
+                $this->db->insert('tbl_users', $data);
+                $insert_id = $this->db->insert_id();
+
+                // get the welcome bonus result from settings 
+                $welcome_bonus_query = $this->db->select('message')->where('type', 'welcome_bonus_coin')->get('tbl_settings')->row_array();
+
+                // get the welcome bonus data if not found then default will be 5
+                $welcome_bonus_coins = (int)$welcome_bonus_query['message'] ?? 5;
+
+                //set the welcome bonus entry in table :- tracker
+                $this->set_tracker_data($insert_id, $welcome_bonus_coins, $this->opening_msg, 0);
+
+                //add coins to users
+                $this->db->where('id', $insert_id)->update('tbl_users', ['coins' => $welcome_bonus_coins]);
+
+                //generate token
+                $api_token = $this->generate_token($insert_id, $firebase_id);
+                $this->db->where('id', $insert_id)->update('tbl_users', ['api_token' => $api_token]);
+
+                $counter = 0;
+                $badges = [
+                    'user_id' => $insert_id,
+                    'dashing_debut' => $counter,
+                    'dashing_debut_counter' => $counter,
+                    'combat_winner' => $counter,
+                    'combat_winner_counter' => $counter,
+                    'clash_winner' => $counter,
+                    'clash_winner_counter' => $counter,
+                    'most_wanted_winner' => $counter,
+                    'most_wanted_winner_counter' => $counter,
+                    'ultimate_player' => $counter,
+                    'quiz_warrior' => $counter,
+                    'quiz_warrior_counter' => $counter,
+                    'super_sonic' => $counter,
+                    'flashback' => $counter,
+                    'brainiac' => $counter,
+                    'big_thing' => $counter,
+                    'elite' => $counter,
+                    'thirsty' => $counter,
+                    'thirsty_date' => '0000-00-00',
+                    'thirsty_counter' => $counter,
+                    'power_elite' => $counter,
+                    'power_elite_counter' => $counter,
+                    'sharing_caring' => $counter,
+                    'streak' => $counter,
+                    'streak_date' => '0000-00-00',
+                    'streak_counter' => $counter,
+                ];
+                $this->db->insert('tbl_users_badges', $badges);
+
+                $refer_code = $this->random_string(4) . $insert_id;
+                $dataR = array('refer_code' => $refer_code);
+                $this->db->where('id', $insert_id)->update('tbl_users', $dataR);
+
+                if ($friends_code != '') {
+                    $data = array('coins' => $refer_coin);
+                    $this->db->where('id', $insert_id)->update('tbl_users', $data);
+                    $this->set_tracker_data($insert_id, $refer_coin, $this->refer_coin_msg, 0);
+                    $credited = credit_coins_to_friends_code($friends_code);
+                    if ($credited['credited']) {
+                        $this->set_coins($credited['user_id'], $credited['coins'], false);
+                        $this->set_tracker_data($credited['user_id'], $earn_coin, $this->earn_coin_msg, 0);
+                        // for sharing is caring badge
+                        $friends = $this->db->where('friends_code', $friends_code)->get('tbl_users')->result_array();
+                        $friends_counter = count($friends);
+                        $this->set_coins($credited['user_id'], $friends_counter, false, $type = 'sharing_caring');
+                    }
+                }
+
+                $res1 = $this->db->where('id', $insert_id)->get('tbl_users')->row_array();
+
+                if (filter_var($res1['profile'], FILTER_VALIDATE_URL) === false) {
+                    $res1['profile'] = ($res1['profile']) ? base_url() . USER_IMG_PATH . $res1['profile'] : '';
+                }
+                $response['error'] = false;
+                $response['message'] = "104";
+                $response['data'] = $res1;
+                // }
             } else {
                 $response['error'] = true;
                 $response['message'] = "129";
