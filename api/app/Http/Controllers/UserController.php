@@ -30,18 +30,60 @@ class UserController extends Controller
         return response()->json(['valid_till' => $validity ? $validity->message : null], 200);
     }
 
-    public function getCategory()
+    public function getCategoriesWithSubcategories()
     {
-        $category = DB::table('tbl_student_category')->get();
+        $categories = DB::table('tbl_student_category')
+            ->leftJoin('tbl_student_subcategory', 'tbl_student_category.id', '=', 'tbl_student_subcategory.cat_id')
+            ->select(
+                'tbl_student_category.id as category_id',
+                'tbl_student_category.name as category_name',
+                'tbl_student_category.image as category_image',
+                'tbl_student_category.description as category_description',
+                'tbl_student_category.status as category_status',
+                'tbl_student_category.validity as category_validity',
+                'tbl_student_subcategory.id as subcategory_id',
+                'tbl_student_subcategory.name as subcategory_name',
+                'tbl_student_subcategory.image as subcategory_image',
+                'tbl_student_subcategory.description as subcategory_description',
+                'tbl_student_subcategory.status as subcategory_status',
+                'tbl_student_subcategory.fees as subcategory_fees',
+                'tbl_student_subcategory.prize as subcategory_prize'
+            )
+            ->get();
 
-        return response()->json(['category' => $category], 200);
-    }
-    public function getSubCategory($id)
-    {
-        $subCategory = DB::table('tbl_student_subcategory')->where('cat_id', $id)->get();
+        // Group the results by category
+        $result = [];
+        foreach ($categories as $category) {
+            $categoryId = $category->category_id;
+            if (!isset($result[$categoryId])) {
+                $result[$categoryId] = [
+                    'id' => $category->category_id,
+                    'name' => $category->category_name,
+                    'image' => $category->category_image,
+                    'description' => $category->category_description,
+                    'status' => $category->category_status,
+                    'validity' => $category->category_validity,
+                    'subcategories' => []
+                ];
+            }
 
-        return response()->json(['sub-category' => $subCategory], 200);
+            if ($category->subcategory_id) {
+                $result[$categoryId]['subcategories'][] = [
+                    'id' => $category->subcategory_id,
+                    'name' => $category->subcategory_name,
+                    'image' => $category->subcategory_image,
+                    'description' => $category->subcategory_description,
+                    'status' => $category->subcategory_status,
+                    'fees' => $category->subcategory_fees,
+                    'prize' => $category->subcategory_prize
+                ];
+            }
+        }
+
+        // Reset keys and return as JSON
+        return response()->json(array_values($result), 200);
     }
+
 
 
     public function renewMembership(Request $request, $id)
