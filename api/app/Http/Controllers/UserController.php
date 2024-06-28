@@ -107,4 +107,18 @@ class UserController extends Controller
             return response()->json(['error' => 'Failed to update membership.'], 500);
         }
     }
+
+    public function getUserToken($mobile)
+    {
+        $user = DB::table('tbl_users')
+        ->where('mobile', $mobile)
+            ->select('api_token')
+            ->first();
+
+        if ($user) {
+            return response()->json(['api_token' => $user->api_token], 200);
+        } else {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+    }
 }
