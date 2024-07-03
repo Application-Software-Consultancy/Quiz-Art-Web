@@ -11,8 +11,14 @@ class UserController extends Controller
     {
         $user = $request->get('user');
 
-        // Convert all values in $user array to strings
-        $user = array_map('strval', $user);
+        // Check if $user is an array before converting values to strings
+        if (is_array($user)) {
+            // Convert all values in $user array to strings
+            $user = array_map('strval', $user);
+        } else {
+            // Handle the case where $user is not an array (optional)
+            $user = [];
+        }
 
         return response()->json(['user' => $user], 200);
     }
