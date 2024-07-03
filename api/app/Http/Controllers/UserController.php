@@ -9,8 +9,10 @@ class UserController extends Controller
 {
     public function getLoggedInUser(Request $request)
     {
-        // Retrieve the authenticated user from the request
         $user = $request->get('user');
+
+        // Convert all values in $user array to strings
+        $user = array_map('strval', $user);
 
         return response()->json(['user' => $user], 200);
     }
@@ -83,8 +85,6 @@ class UserController extends Controller
         // Reset keys and return as JSON
         return response()->json(array_values($result), 200);
     }
-
-
 
     public function renewMembership(Request $request, $id)
     {
