@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -11,17 +12,31 @@ class UserController extends Controller
     {
         $user = $request->get('user');
 
-        // Check if $user is an array before converting values to strings
+        function convertToString($arr)
+        {
+            foreach ($arr as $key => $value) {
+                if (is_array($value)) {
+                    $arr[$key] = convertToString($value);
+                } elseif (is_object($value)) {
+                    $arr[$key] = convertToString((array) $value);
+                } else {
+                    $arr[$key] = (string) $value;
+                }
+            }
+            return $arr;
+        }
+
         if (is_array($user)) {
-            // Convert all values in $user array to strings
-            $user = array_map('strval', $user);
+            $user = convertToString($user);
+        } elseif (is_object($user)) {
+            $user = convertToString((array) $user);
         } else {
-            // Handle the case where $user is not an array (optional)
-            $user = [];
+            Log::info('User is not an array or object', ['user' => $user]);
         }
 
         return response()->json(['user' => $user], 200);
     }
+
 
     public function checkUser($mobile)
     {
@@ -98,13 +113,12 @@ class UserController extends Controller
             'category_id' => 'required|integer',
             'subcategory_id' => 'required|integer',
         ]);
-
         // Update the user's category and subcategory
         $update = DB::table('tbl_users')
             ->where('id', $id)
             ->update([
-                'categoryid' => $validatedData['categoryid'],
-                'subcategoryid' => $validatedData['subcategoryid']
+                'category_id' => $validatedData['category_id'], // Use the correct keys
+                'subcategory_id' => $validatedData['subcategory_id']
             ]);
 
         if ($update) {
@@ -117,7 +131,7 @@ class UserController extends Controller
     public function getUserToken($mobile)
     {
         $user = DB::table('tbl_users')
-        ->where('mobile', $mobile)
+            ->where('mobile', $mobile)
             ->select('api_token')
             ->first();
 
