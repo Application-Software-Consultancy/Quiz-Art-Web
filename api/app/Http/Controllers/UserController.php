@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
@@ -140,5 +141,21 @@ class UserController extends Controller
         } else {
             return response()->json(['error' => 'User not found'], 404);
         }
+    }
+
+    public function checkMembershipExpiry(Request $request)
+    {
+        $user = $request->get('user');
+
+        $category = DB::table('tbl_student_category')->find($user->category_id);
+        $subcategory = DB::table('tbl_student_subcategory')->find($user->subcategory_id);
+
+        $validity = $category->validity;
+
+        $dateRegistered = Carbon::parse($user->date_registered);
+
+        $expiryDate = $dateRegistered->addDays($validity);
+
+        return response()->json(['expiry_date' => $expiryDate->toDateString()]);
     }
 }
