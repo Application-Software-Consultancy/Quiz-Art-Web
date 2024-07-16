@@ -30,3 +30,4 @@ Route::get('/auth-token/{mobile}', [UserController::class, 'getUserToken']);
 Route::get('/check-validity', [UserController::class, 'checkValidity']);
 Route::get('/category', [UserController::class, 'getCategoriesWithSubcategories']);
 Route::get('/check-expiry', [UserController::class, 'checkMembershipExpiry'])->middleware('auth.token');
+Route::get('/settings', [UserController::class, 'settings']);

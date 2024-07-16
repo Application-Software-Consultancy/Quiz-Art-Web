@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
@@ -157,5 +158,20 @@ class UserController extends Controller
         $expiryDate = $dateRegistered->addDays($validity);
 
         return response()->json(['expiry_date' => $expiryDate->toDateString()]);
+    }
+
+    public function settings(): JsonResponse
+    {
+        try {
+            $setting = DB::table('tbl_settings')->get();
+
+            if ($setting) {
+                return response()->json($setting, 200);
+            } else {
+                return response()->json(['message' => 'Settings not found'], 400);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'An error occurred while fetching the settings'], 500);
+        }
     }
 }
