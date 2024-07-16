@@ -163,7 +163,7 @@ class UserController extends Controller
     public function settings(): JsonResponse
     {
         try {
-            $setting = DB::table('tbl_settings')->first();
+            $setting = DB::table('tbl_settings')->get();
 
             if ($setting) {
                 return response()->json($setting, 200);
