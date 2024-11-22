@@ -18,3 +18,4 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::post('/renew-membership/{id}', [UserController::class, 'renewMembership']);
+Route::post('/login', [UserController::class, 'login']);

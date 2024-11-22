@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -173,5 +175,58 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => 'An error occurred while fetching the settings'], 500);
         }
+    }
+
+    public function login(Request $request){
+        // Validate the input
+        $request->validate([
+            'mobile' => 'required',
+            'password' => 'required',
+        ]);
+
+        $mobile = $request->mobile;
+        $password = $request->password;
+
+        // Fetch user by mobile
+        $user = DB::table('tbl_users')
+            ->where('mobile', $mobile)
+            ->first();
+
+        // Check if user exists
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        // Verify password
+        if (!Hash::check($password, $user->password)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid credentials'
+            ], 401);
+        }
+
+        // Generate a new API token
+        $token = Str::random(60);
+
+        // Update the token in the database
+        DB::table('tbl_users')
+            ->where('mobile', $mobile)
+            ->update(['api_token' => $token]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Login successful',
+            'data' => [
+                'user_id' => $user->id,
+                'api_token' => $token,
+            ],
+        ], 200);
+    }
+
+    public function register(){
+        
     }
 }
