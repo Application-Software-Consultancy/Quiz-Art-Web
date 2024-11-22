@@ -3422,13 +3422,17 @@ class Api extends REST_Controller
                 $earn_coin = is_settings('earn_coin');
                 $category_id = ($this->post('category_id')) ? $this->post('category_id') : '';
                 $subcategory_id = ($this->post('subcategory_id')) ? $this->post('subcategory_id') : '';
-
+                $password = ($this->post('password')) ? $this->post('password') : ''; // Capture password
+                
                 if (!empty($friends_code)) {
                     $code = valid_friends_refer_code($friends_code);
                     if (!$code['is_valid']) {
                         $friends_code = '';
                     }
                 }
+
+                // Process the password
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT); // Hash the password
                 $img = "";
                 if ($_FILES['profile']['name'] != '') {
                     $config['upload_path'] = USER_IMG_PATH;
@@ -3448,61 +3452,7 @@ class Api extends REST_Controller
                     $response['message'] = "Mobile Number Already Exist !";
                     return $this->response($response, REST_Controller::HTTP_OK);
                 }
-                // if (!empty($res)) {
-                //     if ($res['status'] == 1) {
-                //         $user_id = $res['id'];
-                //         $refer_code = $this->random_string(4) . $res['refer_code'];
-
-                //         $friends_code_is_used = check_friends_code_is_used_by_user($user_id);
-                //         if (!$friends_code_is_used['is_used'] && $friends_code != '') {
-                //             $data = array('friends_code' => $friends_code);
-                //             $this->db->where('id', $user_id)->update('tbl_users', $data);
-                //             //update coins
-                //             $this->set_coins($user_id, $refer_coin);
-                //             // set tracker data
-                //             $this->set_tracker_data($user_id, $refer_coin, $this->refer_coin_msg, 0);
-
-                //             $credited = credit_coins_to_friends_code($friends_code);
-                //             if ($credited['credited']) {
-                //                 $this->set_coins($credited['user_id'], $credited['coins'], false);
-                //                 // set tracker data
-                //                 $this->set_tracker_data($credited['user_id'], $earn_coin, $this->earn_coin_msg, 0);
-                //                 // for sharing is caring badge
-                //                 $friends = $this->db->where('friends_code', $friends_code)->get('tbl_users')->result_array();
-                //                 $friends_counter = count($friends);
-                //                 $this->set_coins($credited['user_id'], $friends_counter, false, $type = 'sharing_caring');
-                //             }
-                //         }
-                //         if (!empty($fcm_id)) {
-                //             $data = array('fcm_id' => $fcm_id);
-                //             $this->db->where('id', $user_id)->update('tbl_users', $data);
-                //         }
-                //         if (!is_refer_code_set($user_id) && !empty($refer_code)) {
-                //             $data = array('refer_code' => $refer_code);
-                //             $this->db->where('id', $user_id)->update('tbl_users', $data);
-                //         }
-                //         if (!empty($name)) {
-                //             $data = array('name' => $name);
-                //             $this->db->where('id', $user_id)->update('tbl_users', $data);
-                //         }
-
-                //         //generate token
-                //         $api_token = $this->generate_token($user_id, $firebase_id);
-                //         $this->db->where('id', $user_id)->update('tbl_users', ['api_token' => $api_token]);
-
-                //         $res1 = $this->db->where('firebase_id', $firebase_id)->get('tbl_users')->row_array();
-
-                //         if (filter_var($res['profile'], FILTER_VALIDATE_URL) === false) {
-                //             $res1['profile'] = ($res1['profile']) ? base_url() . USER_IMG_PATH . $res1['profile'] : '';
-                //         }
-                //         $response['error'] = false;
-                //         $response['message'] = "105";
-                //         $response['data'] = $res1;
-                //     } else {
-                //         $response['error'] = true;
-                //         $response['message'] = "126";
-                //     }
-                // } else {
+                
                 $data = array(
                     'firebase_id' => $firebase_id,
                     'name' => $name,
@@ -3517,6 +3467,7 @@ class Api extends REST_Controller
                     'friends_code' => $friends_code,
                     'coins' => '0',
                     'status' => $status,
+                    'password' => $hashed_password, // Store hashed password
                     'date_registered' => $this->toDateTime,
                 );
 
