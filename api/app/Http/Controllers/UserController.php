@@ -42,9 +42,9 @@ class UserController extends Controller
     }
 
 
-    public function checkUser($mobile)
+    public function checkUser($email)
     {
-        $exists = DB::table('tbl_users')->where('mobile', $mobile)->exists();
+        $exists = DB::table('tbl_users')->where('email', $email)->exists();
         return response()->json(['exists' => $exists], 200);
     }
 
@@ -227,6 +227,6 @@ class UserController extends Controller
     }
 
     public function register(){
-        
+
     }
 }
