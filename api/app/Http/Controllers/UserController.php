@@ -132,10 +132,10 @@ class UserController extends Controller
         }
     }
 
-    public function getUserToken($mobile)
+    public function getUserToken($email)
     {
         $user = DB::table('tbl_users')
-            ->where('mobile', $mobile)
+            ->where('email', $email)
             ->select('api_token')
             ->first();
 
